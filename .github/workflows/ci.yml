@@ -2,6 +2,8 @@ name: Build
 
 on:
   push:
+    branches:
+      - ci-wip
   pull_request:
   workflow_dispatch:
 
