@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Append git revision to project version
+        run: |
+          (Get-Content version.py) `
+          -Replace '^__version__\s*=\s*"[^"]+', "`$0~$(git rev-parse --short HEAD)" |`
+          Out-File version.py
+
+      - name: Set up variables
+        id: vars
+        run: |
+          $version = python3 -c 'from version import __version__; print(__version__)'
+          Add-Content $env:GITHUB_OUTPUT "version=$version"
+
+      - name: Set up Python virtual environment
+        run: |
+          python3 -m venv env
+
+      - name: Install project dependencies
+        run: |
+          .\env\Scripts\activate
+          python3 -m pip install wheel -r requirements.txt
+
+      - name: Install UPX
+        run: |
+          Invoke-WebRequest -Uri https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip -OutFile (Join-Path $env:Temp upx.zip)
+          Expand-Archive -LiteralPath (Join-Path $env:Temp upx.zip) -DestinationPath $env:Temp
+          Move-Item -Path (Join-Path $env:Temp upx-*) -Destination (Join-Path $env:Temp upx)
+          Add-Content $env:GITHUB_PATH (Join-Path $env:Temp upx)
+
+      - name: Install PyInstaller
+        run: |
+          .\env\Scripts\activate
+          python3 -m pip install pyinstaller
+
+      - name: Create portable executable
+        run: |
+          .\env\Scripts\activate
+          pyinstaller build.spec
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v3
+        with:
+          if-no-files-found: error
+          name: Twitch.Drops.Miner.Windows-${{ steps.vars.outputs.version }}
+          path: |
+            dist\*.exe
