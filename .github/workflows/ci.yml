@@ -19,7 +19,7 @@ jobs:
       - name: Append git revision to project version
         run: |
           (Get-Content version.py) `
-          -Replace '^__version__\s*=\s*"[^"]+', "`$0~$(git rev-parse --short HEAD)" |`
+          -Replace '^__version__\s*=\s*"[^"]+', "`$0.$(git rev-parse --short HEAD)" |`
           Out-File version.py
 
       - name: Set up variables
@@ -54,10 +54,45 @@ jobs:
           .\env\Scripts\activate
           pyinstaller build.spec
 
-      - name: Upload executable
+      - name: Rename build artifact
+        run: |
+          Move-Item dist\*.exe dist\Twitch.Drops.Miner.Windows.exe
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
           if-no-files-found: error
           name: Twitch.Drops.Miner.Windows-${{ steps.vars.outputs.version }}
           path: |
             dist\*.exe
+
+  update_releases_page:
+    name: Upload builds to Releases
+    if: github.event_name != 'pull_request'
+    needs: windows
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download build artifacts from previous jobs
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Upload builds to Releases
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: |
+            artifacts/*/*
+          body: |
+            **NOTE: This is an automatically generated pre-release, based on the latest development version, and thus isn't stable.**
+            - Last build date: `${{ github.event.repository.updated_at }}`
+            - Reference commit: ${{ github.sha }}
+          commit: ${{ github.sha }}
+          name: Development builds
+          prerelease: true
+          removeArtifacts: true
+          tag: dev-builds
