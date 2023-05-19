@@ -1,6 +1,11 @@
 name: Build
 
-on: [workflow_dispatch]
+on:
+  push:
+    branches:
+      - ci-wip
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   windows:
