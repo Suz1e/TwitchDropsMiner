@@ -19,7 +19,6 @@ jobs:
         id: vars
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
-          echo "folder_name=Twitch Drops Miner" >> $env:GITHUB_OUTPUT
 
       - name: Append git revision to project version
         run: |
@@ -55,7 +54,7 @@ jobs:
 
       - name: Create release folder
         run: |
-          $FolderName = ${{steps.vars.outputs.folder_name}}
+          $FolderName = "Twitch Drops Miner"
           if (!(Test-Path $FolderName)) {
             New-Item $FolderName -ItemType Directory
           }
