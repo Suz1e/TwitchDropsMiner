@@ -19,7 +19,7 @@ jobs:
         id: vars
         run: |
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "folder_name=Twitch Drops Miner" >> $GITHUB_OUTPUT
+          echo "folder_name=`"Twitch Drops Miner`"" >> $GITHUB_OUTPUT
 
       - name: Append git revision to project version
         run: |
