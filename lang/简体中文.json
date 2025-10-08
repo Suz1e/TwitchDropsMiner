@@ -14,7 +14,7 @@
     "login": {
         "chrome": {
             "startup": "正在打开Chrome浏览器...",
-            "login_to_complete": "请再次点击登录按钮来完成登陆.",
+            "login_to_complete": "请再次点击登录按钮来完成登录.",
             "no_token": "无法获取授权令牌.",
             "closed_window": "在登录完成之前关闭了Chrome浏览器."
         },
